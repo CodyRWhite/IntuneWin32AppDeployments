@@ -1,16 +1,7 @@
 {
-	"AppInformation":
-	{
+	"AppInformation": {
 		"DisplayName": "TextPad",
-		"Description": "TextPad is designed to provide the power and functionality to satisfy the most demanding text editing requirements. It can edit files up to the limits of virtual memory, and it will work with the 32-bit and 64-bit editions of Windows 10, 8.1, 7, and Server 2008 to 2019.
-
-TextPad has been implemented according to the Windows user interface guidelines, so great attention has been paid to making it easy for both beginners and experienced users. In-context help is available for all commands, and in-context menus pop-up with the right mouse button. The Windows multiple document interface allows multiple files to be edited simultaneously, with up to 2 views on each file. Text can be dragged and dropped between files.
-
-In addition to the usual cut and paste capabilities, you can correct the most common typing errors with commands to change case, and transpose words, characters and lines. Other commands let you indent blocks of text, split or join lines, and insert whole files. Any change can be undone or redone, right back to the first one made. Visible bookmarks can be put on lines, and edit commands can be applied to lines with bookmarks.
-
-Frequently used combinations of commands can be saved as keystroke macros, and the spelling checker has dictionaries for 10 languages.
-
-It also has a customizable tools menu, and integral file compare and search commands, with hypertext jumps from the matched text to the corresponding line in the source file (ideal for integrating compilers).",
+		"Description": "TextPad is designed to provide the power and functionality to satisfy the most demanding text editing requirements. It can edit files up to the limits of virtual memory, and it will work with the 32-bit and 64-bit editions of Windows 10, 8.1, 7, and Server 2008 to 2019.\r\n\r\nTextPad has been implemented according to the Windows user interface guidelines, so great attention has been paid to making it easy for both beginners and experienced users. In-context help is available for all commands, and in-context menus pop-up with the right mouse button. The Windows multiple document interface allows multiple files to be edited simultaneously, with up to 2 views on each file. Text can be dragged and dropped between files.\r\n\r\nIn addition to the usual cut and paste capabilities, you can correct the most common typing errors with commands to change case, and transpose words, characters and lines. Other commands let you indent blocks of text, split or join lines, and insert whole files. Any change can be undone or redone, right back to the first one made. Visible bookmarks can be put on lines, and edit commands can be applied to lines with bookmarks.\r\n\r\nFrequently used combinations of commands can be saved as keystroke macros, and the spelling checker has dictionaries for 10 languages.\r\n\r\nIt also has a customizable tools menu, and integral file compare and search commands, with hypertext jumps from the matched text to the corresponding line in the source file (ideal for integrating compilers).",
 		"Publisher": "Helios",
 		"DisplayVersion": "8.8.1",
 		"Category": "Productivity",
@@ -22,8 +13,7 @@ It also has a customizable tools menu, and integral file compare and search comm
 		"Notes": "",
 		"Logo": "C:\\IntuneApps\\Icons\\Export-Textpad.png"
 	},
-	"ProgramInformation":
-	{
+	"ProgramInformation": {
 		"InstallFile": "TextPad.msi",
 		"InstallCommandLine": "msiexec.exe /i TextPad.msi /qn /norestart ALLUSERS=1 /quiet TRANSFORMS=License.mst",
 		"UninstallCommandLine": "MsiExec.exe /qn /norestart /X {2997FB52-F493-4644-BCD6-F00816479D3A}",
@@ -31,47 +21,39 @@ It also has a customizable tools menu, and integral file compare and search comm
 		"RestartBehavior": "suppress",
 		"ReturnCode": ""
 	},
-	"RequirementRule":
-	{
+	"RequirementRule": {
 		"Architecture": "All",
 		"MinimumSupportedOperatingSystem": "1903",
 		"MinimumFreeDiskSpaceInMB": "",
 		"MinimumMemoryInMB": "",
 		"MinimumNumberOfProcessors": "",
-		"MinimumCPUSpeedInMHz": "",
-		"AdditionalRequirementRule": ""
+		"MinimumCPUSpeedInMHz": ""
 	},
 	"AdditionalRequirementRule": [],
 	"DetectionRules": [
-	{
-		"id": 0,
-		"Detection": "MSI",
-		"ProductCode": "{2997FB52-F493-4644-BCD6-F00816479D3A}",
-		"ProductVersionOperator": "equal",
-		"ProductVersion": "8.8.1"
-	}
+		{
+			"id": 0,
+			"Detection": "MSI",
+			"ProductCode": "{2997FB52-F493-4644-BCD6-F00816479D3A}",
+			"ProductVersionOperator": "equal",
+			"ProductVersion": "8.8.1"
+		}
 	],
-	"Dependencies":[],
-	"Supersedence":[],
-	"Assignments":
-	{
-		"Target": "AllUsers",
-		"Intent": "Available",
-		"Notification": "hideAll",
-		"AvailableTime": "",
-		"DeadlineTime": "",
-		"UseLocalTime": "",
-		"DeliveryOptimizationPriority": "notConfigured",
-		"EnableRestartGracePeriod": "",
-		"RestartGracePeriod": "",
-		"RestartCountDownDisplay": "",
-		"RestartNotificationSnooze": "",
-		"groups": [
-			{
-				"id": "",
-				"include": "",
-				"exclude":""
-			}
-		]
-	}
+	"Dependencies": [],
+	"Supersedence": [],
+	"Assignments": [
+		{
+			"Target": "AllUsers",
+			"Intent": "Available",
+			"Notification": "hideAll",
+			"AvailableTime": "",
+			"DeadlineTime": "",
+			"UseLocalTime": "",
+			"DeliveryOptimizationPriority": "notConfigured",
+			"EnableRestartGracePeriod": "",
+			"RestartGracePeriod": "",
+			"RestartCountDownDisplay": "",
+			"RestartNotificationSnooze": ""
+		}
+	]
 }

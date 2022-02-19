@@ -1,6 +1,5 @@
 {
-	"AppInformation":
-	{
+	"AppInformation": {
 		"DisplayName": "SAP Crystal Reports runtime engine for .NET Framework (32-bit)",
 		"Description": "SAP Crystal Reports runtime engine for .NET Framework (32-bit)",
 		"Publisher": "SAP",
@@ -14,8 +13,7 @@
 		"Notes": "",
 		"Logo": "C:\\IntuneApps\\Icons\\Export-Crystal-Reports.png"
 	},
-	"ProgramInformation":
-	{
+	"ProgramInformation": {
 		"InstallFile": "Crystal_Reports_Runtime.msi",
 		"InstallCommandLine": "msiexec.exe /i Crystal_Reports_Runtime.msi /qn /norestart ALLUSERS=1 /quiet",
 		"UninstallCommandLine": "msiexec.exe /qn /norestart /X {BB4E642E-4F07-4C2A-B146-AB4CB1C3CEA2}",
@@ -23,44 +21,36 @@
 		"RestartBehavior": "suppress",
 		"ReturnCode": ""
 	},
-	"RequirementRule":
-	{
+	"RequirementRule": {
 		"Architecture": "All",
 		"MinimumSupportedOperatingSystem": "1903",
 		"MinimumFreeDiskSpaceInMB": "",
 		"MinimumMemoryInMB": "",
 		"MinimumNumberOfProcessors": "",
-		"MinimumCPUSpeedInMHz": "",
-		"AdditionalRequirementRule": ""
+		"MinimumCPUSpeedInMHz": ""
 	},
 	"DetectionRules": [
-	{
-		"id": 0,
-		"Detection": "MSI",
-		"ProductCode": "{BB4E642E-4F07-4C2A-B146-AB4CB1C3CEA2}",
-		"ProductVersionOperator": "equal",
-		"ProductVersion": "13.0.20.2399"
-	}
+		{
+			"id": 0,
+			"Detection": "MSI",
+			"ProductCode": "{BB4E642E-4F07-4C2A-B146-AB4CB1C3CEA2}",
+			"ProductVersionOperator": "equal",
+			"ProductVersion": "13.0.20.2399"
+		}
 	],
-	"assignments":
-	{
-		"Target": "AllUsers",
-		"Intent": "Required",
-		"Notification": "hideAll",
-		"AvailableTime": "",
-		"DeadlineTime": "",
-		"UseLocalTime": "",
-		"DeliveryOptimizationPriority": "notConfigured",
-		"EnableRestartGracePeriod": "",
-		"RestartGracePeriod": "",
-		"RestartCountDownDisplay": "",
-		"RestartNotificationSnooze": "",
-		"groups": [
-			{
-				"id": "",
-				"include": "",
-				"exclude":""
-			}
-		]
-	}
+	"assignments": [
+		{
+			"Target": "AllUsers",
+			"Intent": "Required",
+			"Notification": "hideAll",
+			"AvailableTime": "",
+			"DeadlineTime": "",
+			"UseLocalTime": "",
+			"DeliveryOptimizationPriority": "notConfigured",
+			"EnableRestartGracePeriod": "",
+			"RestartGracePeriod": "",
+			"RestartCountDownDisplay": "",
+			"RestartNotificationSnooze": ""
+		}
+	]
 }
