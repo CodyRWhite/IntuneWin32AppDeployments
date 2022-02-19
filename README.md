@@ -33,7 +33,7 @@ This is a compolation of deployments and the base core to template new apps with
 
 ## Latest .Build Template
 
-```json
+```jsonc
 {
   "AppInformation": {
     "DisplayName": "Microsoft Teams",
@@ -123,7 +123,7 @@ This is a compolation of deployments and the base core to template new apps with
 
 #### Script
 
-```json
+```jsonc
 {
   "id": 0,
   "RuleType": "Script",
@@ -139,7 +139,7 @@ This is a compolation of deployments and the base core to template new apps with
 
 #### File
 
-```json
+```jsonc
 {
   "id": 0,
   "RuleType": "File",
@@ -154,7 +154,7 @@ This is a compolation of deployments and the base core to template new apps with
 
 #### Registry
 
-```json
+```jsonc
 {
   "id": 0,
   "RuleType": "Registry",
@@ -171,7 +171,7 @@ This is a compolation of deployments and the base core to template new apps with
 
 #### File
 
-```json
+```jsonc
 {
   "id": 0,
   "Detection": "File",
@@ -186,7 +186,7 @@ This is a compolation of deployments and the base core to template new apps with
 
 #### MSI
 
-```json
+```jsonc
 {
   "id": 0,
   "Detection": "MSI",
@@ -198,7 +198,7 @@ This is a compolation of deployments and the base core to template new apps with
 
 #### Registry
 
-```json
+```jsonc
 {
   "id": 0,
   "Detection": "Registry",
@@ -213,7 +213,7 @@ This is a compolation of deployments and the base core to template new apps with
 
 #### Script
 
-```json
+```jsonc
 {
 	"id":0,
 	"Detection":"Script",
@@ -225,7 +225,7 @@ This is a compolation of deployments and the base core to template new apps with
 
 ### Dependencies
 
-```json
+```jsonc
   "Dependencies": [
     {
       "displayName": "App Display Name already in Intune",
@@ -237,7 +237,7 @@ This is a compolation of deployments and the base core to template new apps with
 
 ### Supersedence
 
-```json
+```jsonc
   "Supersedence": [
     {
       "displayName": "App Display Name already in Intune",
