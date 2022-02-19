@@ -4,5 +4,7 @@
 *.mst
 *.cab
 *.bak
-In Progress
+In Progress/
+Private Packages/
+settings.json
 
