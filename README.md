@@ -211,8 +211,6 @@ _Coming Soon_
 
 ### Assignments
 
-#### All Devices
-
 ```jsonc
   "assignments": [
     {
