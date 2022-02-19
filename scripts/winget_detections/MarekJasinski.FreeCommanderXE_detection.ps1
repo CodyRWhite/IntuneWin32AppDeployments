@@ -2,19 +2,40 @@
 $DebugPreference = "Continue"
 
 $appID = "MarekJasinski.FreeCommanderXE"
-$logPath = "$env:SystemRoot\Intune\Logging\Detection"
-$logFile = "$($(Get-Date -Format "yyyy-MM-dd hh.mm.ssK").Replace(":",".")) - $appID.log"
+
+$logPath 			= "$env:ProgramData\Microsoft\IntuneManagementExtension\CustomLogging\Detection"
+$logSettingsPath 	= "$env:ProgramData\Microsoft\IntuneManagementExtension\CustomLogging"
+
+$logFile 		= "$($(Get-Date -Format "yyyy-MM-dd hh.mm.ssK").Replace(":",".")) - $appID.log"
+$settingsFile 	= "settings.json"
+
 $errorVar = $null
-$AppDetectionCode = $null
+$uninstallResult = $null
 
-$intuneSettings = Get-Content -Raw -Path "$env:SystemRoot\Intune\Logging\settings.json" | ConvertFrom-Json
-$debug = [bool]$intuneSettings.Settings.DetectionDebug
+$debug = $false
 
-IF (!(Test-Path -Path $logPath)){
-	New-Item -Path $logPath -ItemType Directory -Force
+IF (Test-Path -Path $logSettingsPath\$settingsFile){
+	$intuneSettings = Get-Content -Raw -Path $logSettingsPath\$settingsFile | ConvertFrom-Json
+	$debug = [bool]$intuneSettings.Settings.DetectionDebug
+}ELSE{
+	$BaseSettings = '{
+		"Settings":
+		{
+			"DetectionDebug": 0,
+			"InstallDebug": 0,
+			"UninstallDebug": 0
+		}
+	}'
+	New-Item -Path $logSettingsPath\$settingsFile -Force
+	Set-Content -Path $logSettingsPath\$settingsFile -Value $BaseSettings
 }
 
-IF ($debug) {Start-Transcript -Path "$logPath\$logFile"}
+IF ($debug) {
+	IF (!(Test-Path -Path $logPath)){
+		New-Item -Path $logPath -ItemType Directory -Force
+	}
+	Start-Transcript -Path "$logPath\$logFile"
+}
 
 try{
 	Write-Verbose "Starting detection for $appID"
