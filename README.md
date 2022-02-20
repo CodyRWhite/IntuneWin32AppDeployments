@@ -2,34 +2,34 @@
 
 Deployment Scripts for Win32Apps in Intune
 
-This is a compolation of deployments and the base core to template new apps with automated deployment into your Intune tenanat.
+This is a compilation of deployments and the base core to template new apps with automated deployment into your Intune tenant.
 
 ## Dependencies
 
-- IntuneWin32App - https://www.powershellgallery.com/packages/IntuneWin32App/1.2.1
-  - All Denpendeces require for this app.
+- IntuneWin32App - https://www.powershellgallery.com/packages/IntuneWin32App/1.3.2
+  - All dependences required for this app.
 - IntuneWinAppUtil - https://github.com/microsoft/Microsoft-Win32-Content-Prep-Tool
-  - Place this excutable in your root working dir, same location as BuildApps.ps1
+  - Place this executable in your root working directory, same location as BuildApps.ps1
 
 ## Supported Features
 
-- Templating applications using ".Build" files a stimple JSON file configuring how the app will deploy into Intune
+- Templating applications using ".Build" files a simple JSON file configuring how the app will deploy into Intune
 - Supporting most features including
   - Multiple Detection Rules
   - Multiple Additional Requirement Rules
-  - Multuple Group Assignments
-  - Multuple Dependences
-  - Multiple Superceedence
+  - Multiple Group Assignments
+  - Multiple Dependences
+  - Multiple Supersedence
 - Using Graph API to assign App Category after deployment
 
 ## Known Issues
 
 - App Naming is quite specific.
-  - Folde rname, Build name, and Primary script all have to have the same name. It was eaiser at the time to pass a single variable based on the folder name to load the .build and pass the same name into IntuneWinAppUtil to build the .intunewin file. This can be addressed with additional coding but it works for me.
+  - Folder name, build name, and primary script all must have the same name. It was easier at the time to pass a single variable based on the folder name to load the .build and pass the same name into IntuneWinAppUtil to build the .intunewin file. This can be addressed with additional coding but it works for me.
 - Issue deploying .intunewin into Intune
-  - It has been common for Intune to throw a 403 error when the script attempts to upload the app to intune.
-  - This may leave stale items in intune to be cleaned up before a re-attempt
-  - I have not been able to narrow this down but I think its a timing issue, not enouhg time between app creation and app upload. However it is not consistant.
+  - It has been common for Intune to throw a 403 error when the script attempts to upload the app to Intune.
+  - There is a 3 attempt retry script to help mitigate this issue.
+  - I have not been able to narrow this down but I think it’s a timing issue, not enough time between app creation and app upload. However, it is not consistent.
 
 ## Latest .Build Template
 
