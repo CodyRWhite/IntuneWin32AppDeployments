@@ -41,6 +41,21 @@ The system context requirement was set in place because we wanted our users to b
   - There is a 3 attempt retry script to help mitigate this issue.
   - I have not been able to narrow this down but I think it’s a timing issue, not enough time between app creation and app upload. However, it is not consistent.
 
+## Instructions
+- Install Dependencies as directed above. 
+- Rename settings.json.dist to settings.json and update the tenantID to match your tenant. 
+- Within the root directory run the following from Admin PS
+  - ```.\BuildApps.ps1```
+- This will start to deploy all the apps listed in the current folder. If you want to exclude any you can go to line 55 to add exclusions. 
+- Optional Lines 122-126 are available to force a republish of all apps or adjust to define apps to republish to Intune. 
+
+## ToDo
+
+- Move exclusions on line 55 to settings.json
+- Redo republish options on lines 122-126, utilize settings.json possible .build flag? 
+- Incorporate Dependency removal to republish
+- Incorporate Supersedence removal to republish
+
 ## Latest .Build Template
 
 ### Application Information
