@@ -11,7 +11,8 @@ My initial goal was to create a build kit that could potentially be integrated t
 ## Initial Complications - WinGet
 
 WinGet took a little time to get working smoothly, however all the apps listed in this repository should install via the system context without issue. As new applications are added verification is needed on the https://github.com/microsoft/winget-pkgs repository for said application to ensure that it at least has a “machine scope”. If this scope is missing the application will fail due to the required scope parameter in the install.ps1 scripts. This ensures that the application can be installed in the system context.
-The system context required was set places because we wanted out users to be able to install approved applications without the requirement of someone from helpdesk performing the task.
+
+The system context requirement was set in place because we wanted our users to be able to install approved applications without helpdesk performing the task.
 
 ## Dependencies
 
