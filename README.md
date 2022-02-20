@@ -41,7 +41,7 @@ This is a compolation of deployments and the base core to template new apps with
     "Description": "Microsoft Teams is a proprietary business communication platform developed by Microsoft, as part of the Microsoft 365 family of products. Teams primarily competes with the similar service Slack, offering workspace chat and videoconferencing, file storage, and application integration.",
     "Publisher": "Microsoft",
     "DisplayVersion": "1.0.0.0",
-    "Category": "Collaboration & Social", //Options:
+    "Category": "Collaboration & Social", //Options: "Other Apps", "Books & Reference", "Data Management", "Productivity", "Business", "Development & Design", "Photos & Media", "Collaboration & Social", "Computer Management"
     "CompanyPortalFeaturedApp": 0, //Options: 0,1
     "InformationURL": "https://www.microsoft.com/en-ca/microsoft-teams/log-in",
     "PrivacyURL": "https://go.microsoft.com/fwlink/?LinkId=521839",
