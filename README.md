@@ -52,10 +52,7 @@ The system context requirement was set in place because we wanted our users to b
 
 ## ToDo
 
-- Move exclusions on line 55 to settings.json
-- Redo republish options on lines 122-126, utilize settings.json possible .build flag? 
-- Incorporate Dependency removal to republish
-- Incorporate Supersedence removal to republish
+https://github.com/users/CodyRWhite/projects/2/views/1
 
 ## Latest .Build Template
 
