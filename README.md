@@ -45,7 +45,8 @@ The system context requirement was set in place because we wanted our users to b
 - Install Dependencies as directed above. 
 - Rename settings.json.dist to settings.json and update the tenantID to match your tenant. 
 - Within the root directory run the following from Admin PS
-  - ```.\BuildApps.ps1```
+  - *** IMPORTANT *** This will disable FIPS in order to run IntuneWinAppUtil - Ref lines 33-38
+  - ```.\BuildApps.ps1```  - 
 - This will start to deploy all the apps listed in the current folder. If you want to exclude any you can go to line 55 to add exclusions. 
 - Optional Lines 122-126 are available to force a republish of all apps or adjust to define apps to republish to Intune. 
 
