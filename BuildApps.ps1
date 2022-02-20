@@ -1,12 +1,42 @@
-﻿Import-Module IntuneWin32App -Force
+﻿########################
+## Imports
+########################
+Import-Module IntuneWin32App -Force
 
-$BuildDir = "$PSScriptRoot"
-$OutputDir = "$PSScriptRoot\Output"
+########################
+## Script Constants
+########################
+Set-Variable BuildDir -Option Constant -Value "$PSScriptRoot"
+Set-Variable OutputDir -Option Constant -Value "$PSScriptRoot\Output"
 
-#FIPS ISSUE WITH IntuneWinAppUtil.exe
+########################
+## Fuctions
+########################
+#region Functions
+function RemoveApp {
+  param (
+    $Win32App
+  )
+
+  Write-Output "Removing old version from remote catalog"
+  $GraphURI = "https://graph.microsoft.com/Beta/deviceAppManagement/mobileApps/$($Win32App.id)"
+  $GraphResponse = Invoke-RestMethod -Uri $GraphURI -Headers $Global:AuthenticationHeader -Method "DELETE" -ErrorAction Stop -Verbose:$false 
+
+  return $GraphResponse
+}
+function RemoveAppDependences {
+}
+function RemoveAppSupersedence {
+}
+#endregion Functions
+
+########################
+## FIPS Isssues with IntuneWinAppUtil.exe
+########################
 #Computer\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Lsa\FipsAlgorithmPolicy ;
 #change both values "Enabled" and "MDMEnabled" to 0
 Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\FipsAlgorithmPolicy" -Name "MDMEnabled" -Value 0
+
 
 $Settings = Get-Content -Raw -Path "$PSScriptRoot\Settings.json" | ConvertFrom-Json
 $Connection_Details = Connect-MSIntuneGraph -TenantID $Settings.Global.TenantID
@@ -20,7 +50,11 @@ $CategoryList = $(Invoke-RestMethod -Uri $GraphURI -Headers $Global:Authenticati
 Write-Verbose -Message "Fetching Application List from Remote Server"
 $Win32Apps = Get-IntuneWin32App
 
-Get-ChildItem $BuildDir -Directory | where-object { $_.Name -notin "Output", "Icons", "In Progress", "scripts", "logs" } | foreach-object {
+# Need to work on a way to sort for dependency and do non dependencies first and add to $win32Apps.. 
+
+Get-ChildItem $BuildDir -Directory | where-object { $_.Name -notin "Output", "Icons", "In Progress", "scripts", "logs", "Private Packages" } | foreach-object {
+  #region app initializtion
+  #Clearing Variables and assiging next app to objects
   $Win32App = $null
   $BuildInfo = $null
   $ContinueBuild = $false
@@ -61,7 +95,9 @@ Get-ChildItem $BuildDir -Directory | where-object { $_.Name -notin "Output", "Ic
   $BuildDependencies = $BuildInfo.Dependencies
   $BuildSupersedences = $BuildInfo.Supersedence
   $BuildAssignments = $BuildInfo.Assignments
+  #endregion app initializtion
 
+  #region Check for app update
   Write-Verbose -Message "Starting W32 App Check on $($BuildAppInfo.DisplayName)"
   Write-Verbose -Message "Local version of $($BuildAppInfo.DisplayName) detected as: $($BuildAppInfo.DisplayVersion)"
     
@@ -82,13 +118,24 @@ Get-ChildItem $BuildDir -Directory | where-object { $_.Name -notin "Output", "Ic
       Write-Verbose -Message "New Version Availble! Preparing Intune W32 App for $($BuildAppInfo.DisplayName)"
       $ContinueBuild = $true
     }
+    ELSE {
+      #Temp Patch to rebuild specific apps... 
+      <#  IF ($SourceFolder -notin "DesktopAppInstaller", "Crystal_Reports_Runtime") {
+        Write-Output "$($BuildAppInfo.DisplayName) - Detected for redeployment"
+        RemoveApp -Win32App $Win32App
+        $ContinueBuild = $true
+      } #>
+    }
   }
   else {
     Write-Verbose -Message "No apps were found in remote catalog - Assuming New Build Process"
     $ContinueBuild = $true
   }
+  #endregion
 
+  #region Deploy App
   IF ($ContinueBuild) {
+
     #Start-Sleep -Seconds 120
     #region Build Win32App
     Write-Verbose -Message "Intune W32 App for $($BuildAppInfo.DisplayName) Build Started"
@@ -119,6 +166,7 @@ Get-ChildItem $BuildDir -Directory | where-object { $_.Name -notin "Output", "Ic
     IF ($BuildAppInfo.Publisher) { $AppParams.add("Publisher", $BuildAppInfo.Publisher) } # Not required, default [String]::empty
     IF ($BuildAppInfo.DisplayVersion) { $AppParams.add("AppVersion", $BuildAppInfo.DisplayVersion) } # Not Required, default [String]::empty
     ## Category when it is added
+    #IF ($BuildAppInfo.Category) { $AppParams.add("Category", $BuildAppInfo.Category) } #Options: "Other Apps", "Books & Reference", "Data Management", "Productivity", "Business", "Development & Design", "Photos & Media", "Collaboration & Social", "Computer Management"
     IF ($BuildAppInfo.CompanyPortalFeaturedApp) { $AppParams.add("CompanyPortalFeaturedApp", $BuildAppInfo.CompanyPortalFeaturedApp) } # Not required, default false
     IF ($BuildAppInfo.InformationURL) { $AppParams.add("InformationURL", $BuildAppInfo.InformationURL) } # Not required, default [String]::empty
     IF ($BuildAppInfo.PrivacyURL) { $AppParams.add("PrivacyURL", $BuildAppInfo.PrivacyURL) } # Not required, default [String]::empty
@@ -137,15 +185,15 @@ Get-ChildItem $BuildDir -Directory | where-object { $_.Name -notin "Output", "Ic
     IF ($BuildProgramInfo.RestartBehavior) { $AppParams.add("RestartBehavior", $BuildProgramInfo.RestartBehavior) } # Required "allow", "basedOnReturnCode", "suppress", "force"
     #endregion Program
 
-    #region Custom Return Codes
+    #region Custom Return Codes - TBD
     Write-Verbose -Message "Preparing package custom return codes - TBD"
-    #endregion Custom Return Codes
+    #endregion Custom Return Codes - TBD
 
     #region Requirement Rule
     Write-Verbose -Message "Preparing package requirement rules"
     $RequirementRuleParams = @{
       "Architecture"                    = $BuildRequirementRule.Architecture # Required, "x64", "x86", "All"
-      "MinimumSupportedOperatingSystem" = $BuildRequirementRule.MinimumSupportedOperatingSystem # Required, "1607", "1703", "1709", "1803", "1809", "1903"
+      "MinimumSupportedOperatingSystem" = $BuildRequirementRule.MinimumSupportedOperatingSystem # Required, "1607", "1703", "1709", "1803", "1809", "1903", "1909", "2004", "20H2", "21H1"
     }
     IF ($BuildRequirementRule.MinimumFreeDiskSpaceInMB) { $RequirementRuleParams.add("MinimumFreeDiskSpaceInMB", $BuildRequirementRule.MinimumFreeDiskSpaceInMB) } # Not required, but validated not null or empty
     IF ($BuildRequirementRule.MinimumMemoryInMB) { $RequirementRuleParams.add("MinimumMemoryInMB", $BuildRequirementRule.MinimumMemoryInMB) } # Not required, but validated not null or empty
@@ -160,22 +208,7 @@ Get-ChildItem $BuildDir -Directory | where-object { $_.Name -notin "Output", "Ic
     Write-Verbose -Message "Preparing package additional requirement rules"
     foreach ($Rule in $BuildAdditionalRequirementRule) {     
       Switch ($Rule.RuleType) {
-        "Script" {
-          <#
-              # "AdditionalRequirementRule": [
-              #  {
-              #    "id": 0,
-              #    "RuleType": "Registry",
-              #    "OutputDataType": "String",
-              #    "ScriptFile": "C:\\IntuneApps\\scripts\\ChassisType.ps1",
-              #    "ScriptContext": "system",
-              #    "ComparisonOperator": "equal",
-              #    "Value": "isDesktop",
-              #    "RunAs32BitOn64System": "0",
-              #    "EnforceSignatureCheck": "0"
-              #  }
-              # ],
-              #>
+        "Script" {          
           $AdditionalRequirementRuleParams = @{}     
           $AdditionalRequirementRuleParams = @{
             "ScriptFile"            = $Rule.ScriptFile
@@ -219,20 +252,6 @@ Get-ChildItem $BuildDir -Directory | where-object { $_.Name -notin "Output", "Ic
           $AdditionalRequirementRule += $(New-IntuneWin32AppRequirementRuleScript @AdditionalRequirementRuleParams)
         }
         "File" {
-          <#
-              # "AdditionalRequirementRule": [
-              #  {
-              #    "id": 0,
-              #    "RuleType": "File",
-              #    "OutputDataType": "Version",
-              #    "Path": "C:\\IntuneApps\\scripts\\ChassisType.ps1",
-              #    "ComparisonOperator": "equal",
-              #    "Value": "8.0.0",
-              #    "Check32BitOn64System": "0",
-              #    "EnforceSignatureCheck": "0"
-              #  }
-              # ],
-              #>
           $AdditionalRequirementRuleParams = @{}     
           $AdditionalRequirementRuleParams = @{
             "Path"                 = $Rule.Path
@@ -270,20 +289,6 @@ Get-ChildItem $BuildDir -Directory | where-object { $_.Name -notin "Output", "Ic
           $AdditionalRequirementRule += $(New-IntuneWin32AppRequirementRuleFile @AdditionalRequirementRuleParams)
         }
         "Registry" {
-          <#
-              # "AdditionalRequirementRule": [
-              #  {
-              #    "id": 0,
-              #    "RuleType": "Registry",
-              #    "OutputDataType": "Version",
-              #    "Path": "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{2997FB52-F493-4644-BCD6-F00816479D3A}",
-              #    "ValueName": "DisplayVersion",
-              #    "ComparisonOperator": "greaterThanOrEqual",
-              #    "Value": "8.8.1",
-              #    "Check32BitOn64System": "0"
-              #  }
-              # ],
-              #>
           $AdditionalRequirementRuleParams = @{}     
           $AdditionalRequirementRuleParams = @{
             "KeyPath"              = $Rule.Path
@@ -335,7 +340,7 @@ Get-ChildItem $BuildDir -Directory | where-object { $_.Name -notin "Output", "Ic
 
         "Script" {
           $DetectionRuleParams = @{
-            "ScriptFile"            = $Detection.ScriptFile # Required for all
+            "ScriptFile"            = $ExecutionContext.InvokeCommand.ExpandString($Detection.ScriptFile) # Required for all
             "EnforceSignatureCheck" = $Detection.EnforceSignatureCheck # Not required, default false
             "RunAs32Bit"            = $Detection.RunAs32Bit  # Not required, default false
           }
@@ -439,15 +444,6 @@ Get-ChildItem $BuildDir -Directory | where-object { $_.Name -notin "Output", "Ic
     #endregion Add App
 
     #region App Dependencies
-    <#
-          "Dependencies":[
-          {
-            "displayName": "",
-            "displayVersion": "",
-            "dependencyType: ""
-          }
-          ],
-        #>
     Write-Output -InputObject "Assigning Dependencies"
     foreach ($Dependency in $BuildDependencies) {
       foreach ($app in $Win32Apps) {
@@ -470,15 +466,6 @@ Get-ChildItem $BuildDir -Directory | where-object { $_.Name -notin "Output", "Ic
     #endregion App Dependencies
 
     #region App Supersedence
-    <#
-        "Supersedence":[
-          {
-          "displayName": "",
-          "displayVersion": "",
-          "SupersedenceType: "Replace"
-          }
-        ],
-        #>
     Write-Output -InputObject "Assigning Supersedence"
     foreach ($Supersedence in $BuildSupersedences) {
       foreach ($app in $Win32Apps) {
@@ -578,15 +565,10 @@ Get-ChildItem $BuildDir -Directory | where-object { $_.Name -notin "Output", "Ic
     $GraphResponse = Invoke-RestMethod -Uri $GraphURI -Headers $Global:AuthenticationHeader -Method "POST" -Body $CategoryBody -ContentType "application/json" -ErrorAction Stop -Verbose:$false 
     #endregion App Category
 
-    # IF ($Win32App) {
-    #     Write-Verbose -Message "Removing old version from remote catalog"
-    #     $GraphURI = "https://graph.microsoft.com/Beta/deviceAppManagement/mobileApps/$($Win32App.id)"
-    #     $GraphResponse = Invoke-RestMethod -Uri $GraphURI -Headers $Global:AuthenticationHeader -Method "DELETE" -ErrorAction Stop -Verbose:$false 
-    # }
-    Write-Output -InputObject "Finished W32 App Check on $($BuildAppInfo.DisplayName)"
-
+    Write-Output -InputObject "Finished W32 App Check on $($BuildAppInfo.DisplayName)"    
   }
   ELSE {
     Write-Verbose -Message "A newer or equal version of $($BuildAppInfo.DisplayName) already exists in Intune, will not attempt to create new Win32 app"
   }
+  #endregion
 }
