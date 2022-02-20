@@ -39,7 +39,7 @@ IF ($debug) {
 
 try{
 	Write-Verbose "Starting detection for $appID"
-	Push-Location "$env:ProgramFiles\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe" -ErrorAction SilentlyContinue
+	Push-Location "C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe" -ErrorAction SilentlyContinue
 	$appFilePath = "$(Get-Location)\AppInstallerCLI.exe"
 	IF (Test-Path -Path $appFilePath){
 		$argumentList =  [System.Collections.ArrayList]@("-v")  
