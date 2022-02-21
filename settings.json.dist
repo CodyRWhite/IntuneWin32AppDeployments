@@ -1,6 +1,24 @@
 {
-    "Global":
-    {
+    "Global": {
         "TenantID": "myorg.onmicrosoft.com"
+    },
+    "Folders": {
+        "Exclusions": [
+            "Output",
+            "Icons",
+            "In Progress",
+            "scripts",
+            "logs",
+            "Private Packages"
+        ]
+    },
+    "Rebuild": {
+        "Include": [
+            "PowerToys", //"[a-zA-Z]+ *(.+)" can be used for wildcard
+            "Teams"
+        ],
+        "Exclude": [
+            "PowerToys"
+        ]
     }
 }
