@@ -81,6 +81,17 @@ $Win32Apps = Get-IntuneWin32App
 # Need to work on a way to sort for dependency and do non dependencies first and add to $win32Apps.. 
 
 Get-ChildItem $BuildDir -Directory | where-object { $_.Name -notin $Settings.Folders.Exclusions } | foreach-object {
+  #region Authoriaztaion refresh check
+  $TokenLifeTime = ($Global:AuthenticationHeader.ExpiresOn - (Get-Date).ToUniversalTime()).Minutes
+  if ($TokenLifeTime -le 10) {
+    Write-Verbose -Message "Existing token found but has less than 10 minutes."
+    $Connection_Details = Connect-MSIntuneGraph -TenantID $Settings.Global.TenantID -Refresh
+  }
+  else {
+    Write-Verbose -Message "Current authentication token expires in (minutes): $($TokenLifeTime)"
+  }
+  #endregion
+
   #region app initializtion
   #Clearing Variables and assiging next app to objects
   $Win32App = $null
@@ -164,7 +175,6 @@ Get-ChildItem $BuildDir -Directory | where-object { $_.Name -notin $Settings.Fol
   #region Deploy App
   IF ($ContinueBuild) {
 
-    #Start-Sleep -Seconds 120
     #region Build Win32App
     Write-Host "##################### Starting - $($BuildAppInfo.DisplayName) #####################" -ForegroundColor "blue" 
     Write-Verbose -Message "Intune W32 App for $($BuildAppInfo.DisplayName) Build Started"
@@ -466,11 +476,20 @@ Get-ChildItem $BuildDir -Directory | where-object { $_.Name -notin $Settings.Fol
         Start-Sleep -Seconds 3
         IF ($retryCount -eq 3) {
           Write-Error -Message "Upload failed 3 attempts, skipping to next package."
+          $AppUploaded = $false
         }
       }
+      else {        
+        Write-Output -InputObject "App $($BuildAppInfo.DisplayName) added to Endpoint Manager"
+        $AppUploaded = $true
+      }
       $retryCount += 1
-    } while ($NewWin32App.size -eq 0 -and $retryCount -le 3)
-    Write-Output -InputObject "App $($BuildAppInfo.DisplayName) added to Endpoint Manager"
+    } while ($NewWin32App.size -eq 0 -and $retryCount -le 3)    
+    IF (!($AppUploaded)) {
+      Write-Host "##################### Aborted - $($BuildAppInfo.DisplayName) #####################`r`n`r`n"-ForegroundColor "blue"   
+      continue
+    }
+
     #endregion Add App
 
     #region App Dependencies
