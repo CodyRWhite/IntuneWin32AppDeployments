@@ -17,16 +17,44 @@ function RemoveApp {
   param (
     $Win32App
   )
+  $AppDependences = $null
+  $AppSupersedences = $null
 
-  Write-Output "Removing old version from remote catalog"
+  Write-Verbose "Checking prerequisites before removing $($Win32App.DisplayName) from remote catalog"
+
+  $AppDependences = Get-IntuneWin32AppDependency -ID $Win32App.id
+  IF ($AppDependences) {
+    Write-Verbose "Detected app dependences"
+    $DependencesRemovalResult = RemoveAppDependences $Win32App.ID
+  }
+
+  $AppSupersedences = Get-IntuneWin32AppSupersedence -ID $Win32App.id
+  IF ($AppSupersedences) {
+    Write-Verbose "Detected app supersedences"
+    $SupersedencesRemovalResult = RemoveAppSupersedences $Win32App.ID
+  }
+
+  Write-Verbose "Removing old version from remote catalog"
   $GraphURI = "https://graph.microsoft.com/Beta/deviceAppManagement/mobileApps/$($Win32App.id)"
   $GraphResponse = Invoke-RestMethod -Uri $GraphURI -Headers $Global:AuthenticationHeader -Method "DELETE" -ErrorAction Stop -Verbose:$false 
 
   return $GraphResponse
 }
 function RemoveAppDependences {
+  param (
+    $Win32AppID
+  )
+
+  Write-Verbose  "Removing app dependences"
+  return Remove-IntuneWin32AppDependency -ID $Win32AppID
 }
-function RemoveAppSupersedence {
+function RemoveAppSupersedences {
+  param (
+    $Win32AppID
+  )
+
+  Write-Verbose  "Removing app supersedences"
+  return Remove-IntuneWin32AppDependency -ID $Win32AppID
 }
 #endregion Functions
 
@@ -38,7 +66,7 @@ function RemoveAppSupersedence {
 Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\FipsAlgorithmPolicy" -Name "MDMEnabled" -Value 0
 
 
-$Settings = Get-Content -Raw -Path "$PSScriptRoot\Settings.json" | ConvertFrom-Json
+$Settings = $(Get-Content -Raw -Path "$PSScriptRoot\Settings.json") -Replace '(?m)\s*//.*?$' -Replace '(?ms)/\*.*?\*/' | ConvertFrom-Json
 $Connection_Details = Connect-MSIntuneGraph -TenantID $Settings.Global.TenantID
 
 # Get Categories
@@ -52,7 +80,7 @@ $Win32Apps = Get-IntuneWin32App
 
 # Need to work on a way to sort for dependency and do non dependencies first and add to $win32Apps.. 
 
-Get-ChildItem $BuildDir -Directory | where-object { $_.Name -notin "Output", "Icons", "In Progress", "scripts", "logs", "Private Packages" } | foreach-object {
+Get-ChildItem $BuildDir -Directory | where-object { $_.Name -notin $Settings.Folders.Exclusions } | foreach-object {
   #region app initializtion
   #Clearing Variables and assiging next app to objects
   $Win32App = $null
@@ -120,11 +148,11 @@ Get-ChildItem $BuildDir -Directory | where-object { $_.Name -notin "Output", "Ic
     }
     ELSE {
       #Temp Patch to rebuild specific apps... 
-      <#  IF ($SourceFolder -notin "DesktopAppInstaller", "Crystal_Reports_Runtime") {
-        Write-Output "$($BuildAppInfo.DisplayName) - Detected for redeployment"
-        RemoveApp -Win32App $Win32App
+      IF ($SourceFolder -match $Settings.Rebuild.Include -And $SourceFolder -notin $Settings.Rebuild.Exclude) {
+        Write-Host "##################### $($BuildAppInfo.DisplayName) - Detected for redeployment #####################" -ForegroundColor "magenta"
+        $RemoveAppResult = RemoveApp -Win32App $Win32App
         $ContinueBuild = $true
-      } #>
+      }
     }
   }
   else {
@@ -138,6 +166,7 @@ Get-ChildItem $BuildDir -Directory | where-object { $_.Name -notin "Output", "Ic
 
     #Start-Sleep -Seconds 120
     #region Build Win32App
+    Write-Host "##################### Starting - $($BuildAppInfo.DisplayName) #####################" -ForegroundColor "blue" 
     Write-Verbose -Message "Intune W32 App for $($BuildAppInfo.DisplayName) Build Started"
     Start-Process -FilePath "$BuildDir\IntuneWinAppUtil.exe" -ArgumentList "-c $BuildPath", "-s $($BuildProgramInfo.InstallFile)", "-o $OutputDir", "-q" -NoNewWindow -Wait -RedirectStandardOutput "NULL"
     if ($($BuildProgramInfo.InstallFile) -eq "Install.ps1") {
@@ -344,6 +373,7 @@ Get-ChildItem $BuildDir -Directory | where-object { $_.Name -notin "Output", "Ic
             "EnforceSignatureCheck" = $Detection.EnforceSignatureCheck # Not required, default false
             "RunAs32Bit"            = $Detection.RunAs32Bit  # Not required, default false
           }
+          Write-Debug $DetectionRuleParams.Values
           $DetectionRule += $(New-IntuneWin32AppDetectionRuleScript @DetectionRuleParams)
         }
 
@@ -426,10 +456,9 @@ Get-ChildItem $BuildDir -Directory | where-object { $_.Name -notin "Output", "Ic
     Write-Output -InputObject "Adding $($BuildAppInfo.DisplayName) Win32App to Endpoint Manager"
     $retryCount = 0
     do {
-      $retryCount += 1
       Write-Debug -Message "RetryCount = $retryCount"
       $NewWin32App = Add-IntuneWin32App @AppParams #ReturnCode # Not required, validated null or empty
-      #Write-Output $NewWin32App
+      #Write-Output -InputObject $NewWin32App
       IF ($NewWin32App.size -eq 0) {
         Write-Warning -Message "Upload Failed Attempting Again...Cleaning up Orphans and Pausing for 3 Seconds"
         $GraphURI = "https://graph.microsoft.com/Beta/deviceAppManagement/mobileApps/$($NewWin32App.id)"
@@ -439,6 +468,7 @@ Get-ChildItem $BuildDir -Directory | where-object { $_.Name -notin "Output", "Ic
           Write-Error -Message "Upload failed 3 attempts, skipping to next package."
         }
       }
+      $retryCount += 1
     } while ($NewWin32App.size -eq 0 -and $retryCount -le 3)
     Write-Output -InputObject "App $($BuildAppInfo.DisplayName) added to Endpoint Manager"
     #endregion Add App
@@ -565,7 +595,7 @@ Get-ChildItem $BuildDir -Directory | where-object { $_.Name -notin "Output", "Ic
     $GraphResponse = Invoke-RestMethod -Uri $GraphURI -Headers $Global:AuthenticationHeader -Method "POST" -Body $CategoryBody -ContentType "application/json" -ErrorAction Stop -Verbose:$false 
     #endregion App Category
 
-    Write-Output -InputObject "Finished W32 App Check on $($BuildAppInfo.DisplayName)"    
+    Write-Host "##################### Finished - $($BuildAppInfo.DisplayName) #####################`r`n`r`n"-ForegroundColor "blue"    
   }
   ELSE {
     Write-Verbose -Message "A newer or equal version of $($BuildAppInfo.DisplayName) already exists in Intune, will not attempt to create new Win32 app"
