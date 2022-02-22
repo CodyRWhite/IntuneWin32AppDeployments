@@ -35,7 +35,7 @@ The system context requirement was set in place because we wanted our users to b
 ## Known Issues
 
 - App Naming is quite specific.
-  - Folder name, build name, and primary script all must have the same name. It was easier at the time to pass a single variable based on the folder name to load the .build and pass the same name into IntuneWinAppUtil to build the .intunewin file. This can be addressed with additional coding but it works for me.
+  - Folder name and build name must have the same name. It was easier at the time to pass a single variable based on the folder name to load the .build. This can be addressed with additional coding but it works for me.
 - Issue deploying .intunewin into Intune
   - It has been common for Intune to throw a 403 error when the script attempts to upload the app to Intune.
   - There is a 3 attempt retry script to help mitigate this issue.
