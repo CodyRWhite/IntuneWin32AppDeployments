@@ -38,19 +38,6 @@
 			"ProductVersion": "13.0.20.2399"
 		}
 	],
-	"assignments": [
-		{
-			"Target": "AllUsers",
-			"Intent": "Required",
-			"Notification": "hideAll",
-			"AvailableTime": "",
-			"DeadlineTime": "",
-			"UseLocalTime": "",
-			"DeliveryOptimizationPriority": "notConfigured",
-			"EnableRestartGracePeriod": "",
-			"RestartGracePeriod": "",
-			"RestartCountDownDisplay": "",
-			"RestartNotificationSnooze": ""
-		}
+	"assignments": [ //dependency app no assignment
 	]
 }

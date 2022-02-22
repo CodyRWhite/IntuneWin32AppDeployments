@@ -6,6 +6,7 @@ Import-Module IntuneWin32App -Force
 ########################
 ## Script Constants
 ########################
+#Set-Variable BuildDir -Option Constant -Value (Get-Location).path
 Set-Variable BuildDir -Option Constant -Value "$PSScriptRoot"
 Set-Variable OutputDir -Option Constant -Value "$PSScriptRoot\Output"
 
@@ -82,8 +83,7 @@ Write-Verbose -Message "Fetching Application List from Remote Server"
 $Win32Apps = Get-IntuneWin32App
 
 # Need to work on a way to sort for dependency and do non dependencies first and add to $win32Apps.. 
-
-Get-ChildItem $BuildDir -Directory | where-object { $_.Name -notin $Settings.Folders.Exclusions } | foreach-object {
+Get-ChildItem "$BuildDir\Winget-Pkgs", "$BuildDir\Private-Pkgs" -Directory | where-object { $_.Name -notin $Settings.Folders.Exclusions } | foreach-object {
   #region Authoriaztaion refresh check
   $TokenLifeTime = ($Global:AuthenticationHeader.ExpiresOn - (Get-Date).ToUniversalTime()).Minutes
   if ($TokenLifeTime -le 10) {
@@ -125,7 +125,7 @@ Get-ChildItem $BuildDir -Directory | where-object { $_.Name -notin $Settings.Fol
   $AssignmentParams = @{}
 
   $SourceFolder = $_.Name
-  $BuildPath = $BuildDir + "\" + $SourceFolder
+  $BuildPath = $_.FullName
   $BuildInfoFile = $BuildPath + "\" + (Get-ChildItem $BuildPath | where-object { $_.Extension -eq ".build" }).Name
   $BuildInfo = Get-Content -Raw -Path $BuildInfoFile | ConvertFrom-Json
   $IntuneWinFile = "$OutputDir\$SourceFolder.intunewin"
