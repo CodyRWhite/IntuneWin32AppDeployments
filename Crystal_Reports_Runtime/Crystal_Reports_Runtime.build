@@ -11,7 +11,7 @@
 		"Developer": "",
 		"Owner": "",
 		"Notes": "",
-		"Logo": "C:\\IntuneApps\\Icons\\Export-Crystal-Reports.png"
+		"Logo": "$PSScriptRoot\\Icons\\Export-Crystal-Reports.png"
 	},
 	"ProgramInformation": {
 		"InstallFile": "Crystal_Reports_Runtime.msi",

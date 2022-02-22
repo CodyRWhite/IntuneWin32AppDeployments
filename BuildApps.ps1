@@ -26,12 +26,14 @@ function RemoveApp {
   IF ($AppDependences) {
     Write-Verbose "Detected app dependences"
     $DependencesRemovalResult = RemoveAppDependences $Win32App.ID
+    Write-Debug -Message $DependencesRemovalResult
   }
 
   $AppSupersedences = Get-IntuneWin32AppSupersedence -ID $Win32App.id
   IF ($AppSupersedences) {
     Write-Verbose "Detected app supersedences"
     $SupersedencesRemovalResult = RemoveAppSupersedences $Win32App.ID
+    Write-Debug -Message $SupersedencesRemovalResult
   }
 
   Write-Verbose "Removing old version from remote catalog"
@@ -68,6 +70,7 @@ Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\FipsAlgorithm
 
 $Settings = $(Get-Content -Raw -Path "$PSScriptRoot\Settings.json") -Replace '(?m)\s*//.*?$' -Replace '(?ms)/\*.*?\*/' | ConvertFrom-Json
 $Connection_Details = Connect-MSIntuneGraph -TenantID $Settings.Global.TenantID
+Write-Debug -Message $Connection_Details
 
 # Get Categories
 Write-Verbose -Message "Fetching Category List from Remote Server"
@@ -86,6 +89,7 @@ Get-ChildItem $BuildDir -Directory | where-object { $_.Name -notin $Settings.Fol
   if ($TokenLifeTime -le 10) {
     Write-Verbose -Message "Existing token found but has less than 10 minutes."
     $Connection_Details = Connect-MSIntuneGraph -TenantID $Settings.Global.TenantID -Refresh
+    Write-Debug -Message $Connection_Details
   }
   else {
     Write-Verbose -Message "Current authentication token expires in (minutes): $($TokenLifeTime)"
@@ -159,10 +163,13 @@ Get-ChildItem $BuildDir -Directory | where-object { $_.Name -notin $Settings.Fol
     }
     ELSE {
       #Temp Patch to rebuild specific apps... 
-      IF ($SourceFolder -match $Settings.Rebuild.Include -And $SourceFolder -notin $Settings.Rebuild.Exclude) {
-        Write-Host "##################### $($BuildAppInfo.DisplayName) - Detected for redeployment #####################" -ForegroundColor "magenta"
-        $RemoveAppResult = RemoveApp -Win32App $Win32App
-        $ContinueBuild = $true
+      IF ($Settings.Rebuild.Enabled) {
+        IF ($SourceFolder -match $Settings.Rebuild.Include -And $SourceFolder -notin $Settings.Rebuild.Exclude) {
+          Write-Host "##################### $($BuildAppInfo.DisplayName) - Detected for redeployment #####################" -ForegroundColor "magenta"
+          $RemoveAppResult = RemoveApp -Win32App $Win32App
+          Write-Debug -Message $RemoveAppResult
+          $ContinueBuild = $true
+        }
       }
     }
   }
@@ -178,7 +185,7 @@ Get-ChildItem $BuildDir -Directory | where-object { $_.Name -notin $Settings.Fol
     #region Build Win32App
     Write-Host "##################### Starting - $($BuildAppInfo.DisplayName) #####################" -ForegroundColor "blue" 
     Write-Verbose -Message "Intune W32 App for $($BuildAppInfo.DisplayName) Build Started"
-    Start-Process -FilePath "$BuildDir\IntuneWinAppUtil.exe" -ArgumentList "-c $BuildPath", "-s $($BuildProgramInfo.InstallFile)", "-o $OutputDir", "-q" -NoNewWindow -Wait -RedirectStandardOutput "NULL"
+    Start-Process -FilePath "$BuildDir\IntuneWinAppUtil.exe" -ArgumentList "-c $BuildPath", "-s $($BuildProgramInfo.InstallFile)", "-o $OutputDir", "-q" -NoNewWindow -Wait -RedirectStandardOutput "NUL"
     if ($($BuildProgramInfo.InstallFile) -eq "Install.ps1") {
       IF (Test-Path -Path "$OutputDir\$SourceFolder.intunewin") {
         Remove-Item -Path "$OutputDir\$SourceFolder.intunewin"
@@ -191,7 +198,7 @@ Get-ChildItem $BuildDir -Directory | where-object { $_.Name -notin $Settings.Fol
     #region Win32App Logo Image
     Write-Verbose -Message "Preparing package logo image"
     IF ($BuildAppInfo.Logo) {
-      $Icon = New-IntuneWin32AppIcon -FilePath "$($BuildAppInfo.Logo)"
+      $Icon = New-IntuneWin32AppIcon -FilePath $ExecutionContext.InvokeCommand.ExpandString($BuildAppInfo.Logo)
     }
     #endregion Win32App Logo Image 
 
@@ -301,7 +308,7 @@ Get-ChildItem $BuildDir -Directory | where-object { $_.Name -notin $Settings.Fol
           Switch ($Rule.OutputDataType) {
             "Existence" {
               $AdditionalRequirementRuleParams.add("Existence", $true)
-				          $AdditionalRequirementRuleParams.add("FileOrFolder", $Rule.FileOrFolder)
+              $AdditionalRequirementRuleParams.add("FileOrFolder", $Rule.FileOrFolder)
               $AdditionalRequirementRuleParams.add("DetectionType", $Rule.ComparisonOperator)
             }
             "DateModified" {
@@ -473,6 +480,7 @@ Get-ChildItem $BuildDir -Directory | where-object { $_.Name -notin $Settings.Fol
         Write-Warning -Message "Upload Failed Attempting Again...Cleaning up Orphans and Pausing for 3 Seconds"
         $GraphURI = "https://graph.microsoft.com/Beta/deviceAppManagement/mobileApps/$($NewWin32App.id)"
         $GraphResponse = Invoke-RestMethod -Uri $GraphURI -Headers $Global:AuthenticationHeader -Method "DELETE" -ErrorAction Stop -Verbose:$false 
+        Write-Debug -Message $GraphResponse
         Start-Sleep -Seconds 3
         IF ($retryCount -eq 3) {
           Write-Error -Message "Upload failed 3 attempts, skipping to next package."

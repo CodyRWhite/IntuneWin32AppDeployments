@@ -11,7 +11,7 @@
 		"Developer": "",
 		"Owner": "",
 		"Notes": "",
-		"Logo": "C:\\IntuneApps\\Icons\\Export-Textpad.png"
+		"Logo": "$PSScriptRoot\\Icons\\Export-Textpad.png"
 	},
 	"ProgramInformation": {
 		"InstallFile": "TextPad.msi",

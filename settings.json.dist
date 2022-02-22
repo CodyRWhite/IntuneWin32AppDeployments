@@ -13,6 +13,7 @@
         ]
     },
     "Rebuild": {
+        "Enabled":1,
         "Include": [
             "PowerToys", //"[a-zA-Z]+ *(.+)" can be used for wildcard
             "Teams"
