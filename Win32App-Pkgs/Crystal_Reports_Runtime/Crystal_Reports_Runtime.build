@@ -18,8 +18,7 @@
 		"InstallCommandLine": "msiexec.exe /i Crystal_Reports_Runtime.msi /qn /norestart ALLUSERS=1 /quiet",
 		"UninstallCommandLine": "msiexec.exe /qn /norestart /X {BB4E642E-4F07-4C2A-B146-AB4CB1C3CEA2}",
 		"InstallExperience": "system",
-		"RestartBehavior": "suppress",
-		"ReturnCode": ""
+		"RestartBehavior": "suppress"
 	},
 	"RequirementRule": {
 		"Architecture": "All",
