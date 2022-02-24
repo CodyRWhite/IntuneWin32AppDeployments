@@ -5,6 +5,5 @@
 *.cab
 *.bak
 In Progress/
-Private Packages/
+Private-Pkgs
 settings.json
-
