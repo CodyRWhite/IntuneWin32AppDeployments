@@ -45,7 +45,8 @@ The system context requirement was set in place because we wanted our users to b
 - Install Dependencies as directed above. 
 - Rename settings.json.dist to settings.json and update the tenantID to match your tenant. 
 - Rename build files to remove .dist use the following script to make copy's of everything
-    ```ps
+    ```powershell
+    $BuildDir = "C:\IntuneWin32AppDeployments" # Where ever the root dir is for this repository
     Get-ChildItem "$BuildDir\Winget-Pkgs", "$BuildDir\Win32App-Pkgs", "$BuildDir\Private-Pkgs" -Directory | where-object { $_.Name -notin $Settings.Folders.Exclusions } | foreach-object {
         set-location $($_.FullName)                                         
         Copy-Item -Path "$($_.Name).build.dist" -Destination "$($_.Name).build"                              
