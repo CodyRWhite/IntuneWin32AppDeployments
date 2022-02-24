@@ -83,7 +83,7 @@ Write-Verbose -Message "Fetching Application List from Remote Server"
 $Win32Apps = Get-IntuneWin32App
 
 # Need to work on a way to sort for dependency and do non dependencies first and add to $win32Apps.. 
-Get-ChildItem "$BuildDir\Winget-Pkgs", "$BuildDir\Private-Pkgs" -Directory | where-object { $_.Name -notin $Settings.Folders.Exclusions } | foreach-object {
+Get-ChildItem "$BuildDir\Winget-Pkgs", "$BuildDir\Win32App-Pkgs", "$BuildDir\Private-Pkgs" -Directory | where-object { $_.Name -notin $Settings.Folders.Exclusions } | foreach-object {
   #region Authoriaztaion refresh check
   $TokenLifeTime = ($Global:AuthenticationHeader.ExpiresOn - (Get-Date).ToUniversalTime()).Minutes
   if ($TokenLifeTime -le 10) {
@@ -127,7 +127,7 @@ Get-ChildItem "$BuildDir\Winget-Pkgs", "$BuildDir\Private-Pkgs" -Directory | whe
   $SourceFolder = $_.Name
   $BuildPath = $_.FullName
   $BuildInfoFile = $BuildPath + "\" + (Get-ChildItem $BuildPath | where-object { $_.Extension -eq ".build" }).Name
-  $BuildInfo = Get-Content -Raw -Path $BuildInfoFile | ConvertFrom-Json
+  $BuildInfo = $(Get-Content -Raw -Path $BuildInfoFile) -Replace '(?m)\s*//.*?$' -Replace '(?ms)/\*.*?\*/' | ConvertFrom-Json
   $IntuneWinFile = "$OutputDir\$SourceFolder.intunewin"
 
   $BuildAppInfo = $BuildInfo.AppInformation
