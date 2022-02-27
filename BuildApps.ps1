@@ -69,7 +69,7 @@ function RemoveAppSupersedences {
 Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\FipsAlgorithmPolicy" -Name "MDMEnabled" -Value 0
 
 
-$Settings = $(Get-Content -Raw -Path "$PSScriptRoot\Settings.json") -Replace '(?m)\s*//.*?$' -Replace '(?ms)/\*.*?\*/' | ConvertFrom-Json
+$Settings = $(Get-Content -Raw -Path "$PSScriptRoot\Settings.json") -Replace '(?m)(?<=^([^"]|"[^"]*")*)//.*' -Replace '(?ms)/\*.*?\*/' | ConvertFrom-Json
 $Connection_Details = Connect-MSIntuneGraph -TenantID $Settings.Global.TenantID
 Write-Debug -Message $Connection_Details
 
@@ -82,7 +82,7 @@ $CategoryList = $(Invoke-RestMethod -Uri $GraphURI -Headers $Global:Authenticati
 Write-Verbose -Message "Fetching Application List from Remote Server"
 $Win32Apps = Get-IntuneWin32App
 
-# Need to work on a way to sort for dependency and do non dependencies first and add to $win32Apps.. 
+# Need to work on a way to sort for dependency and do non dependencies first and add to $win32Apps..
 Get-ChildItem "$BuildDir\Winget-Pkgs", "$BuildDir\Win32App-Pkgs", "$BuildDir\Private-Pkgs" -Directory | where-object { $_.Name -notin $Settings.Folders.Exclusions } | foreach-object {
   #region Authoriaztaion refresh check
   $TokenLifeTime = ($Global:AuthenticationHeader.ExpiresOn - (Get-Date).ToUniversalTime()).Minutes
@@ -121,13 +121,13 @@ Get-ChildItem "$BuildDir\Winget-Pkgs", "$BuildDir\Win32App-Pkgs", "$BuildDir\Pri
   $AppParams = @{}
   $NewWin32App = $null
 
-  $Win32AppAssignment = $null
+  $Win32AppAssignment = @()
   $AssignmentParams = @{}
 
   $SourceFolder = $_.Name
   $BuildPath = $_.FullName
   $BuildInfoFile = $BuildPath + "\" + (Get-ChildItem $BuildPath | where-object { $_.Extension -eq ".build" }).Name
-  $BuildInfo = $(Get-Content -Raw -Path $BuildInfoFile) -Replace '(?m)\s*//.*?$' -Replace '(?ms)/\*.*?\*/' | ConvertFrom-Json
+  $BuildInfo = $(Get-Content -Raw -Path $BuildInfoFile) -Replace '(?m)(?<=^([^"]|"[^"]*")*)//.*' -Replace '(?ms)/\*.*?\*/' | ConvertFrom-Json
   $IntuneWinFile = "$OutputDir\$SourceFolder.intunewin"
 
   $BuildAppInfo = $BuildInfo.AppInformation
@@ -164,7 +164,7 @@ Get-ChildItem "$BuildDir\Winget-Pkgs", "$BuildDir\Win32App-Pkgs", "$BuildDir\Pri
     ELSE {
       #Temp Patch to rebuild specific apps... 
       IF ($Settings.Rebuild.Enabled) {
-        IF ($SourceFolder -match $Settings.Rebuild.Include -And $SourceFolder -notin $Settings.Rebuild.Exclude) {
+        IF ($SourceFolder -in $Settings.Rebuild.Include -And $SourceFolder -notin $Settings.Rebuild.Exclude) {
           Write-Host "##################### $($BuildAppInfo.DisplayName) - Detected for redeployment #####################" -ForegroundColor "magenta"
           $RemoveAppResult = RemoveApp -Win32App $Win32App
           Write-Debug -Message $RemoveAppResult
@@ -471,19 +471,19 @@ Get-ChildItem "$BuildDir\Winget-Pkgs", "$BuildDir\Win32App-Pkgs", "$BuildDir\Pri
 
     #region Add App
     Write-Output -InputObject "Adding $($BuildAppInfo.DisplayName) Win32App to Endpoint Manager"
-    $retryCount = 0
+    $retryCount = 1
     do {
       Write-Debug -Message "RetryCount = $retryCount"
       $NewWin32App = Add-IntuneWin32App @AppParams #ReturnCode # Not required, validated null or empty
       #Write-Output -InputObject $NewWin32App
       IF ($NewWin32App.size -eq 0) {
-        Write-Warning -Message "Upload Failed Attempting Again...Cleaning up Orphans and Pausing for 3 Seconds"
+        Write-Warning -Message "Application upload failed $retryCount time(s). Attempting Again...`r`nCleaning up Orphans and Pausing for 3 Seconds"
         $GraphURI = "https://graph.microsoft.com/Beta/deviceAppManagement/mobileApps/$($NewWin32App.id)"
         $GraphResponse = Invoke-RestMethod -Uri $GraphURI -Headers $Global:AuthenticationHeader -Method "DELETE" -ErrorAction Stop -Verbose:$false 
         Write-Debug -Message $GraphResponse
-        Start-Sleep -Seconds 3
-        IF ($retryCount -eq 3) {
-          Write-Error -Message "Upload failed 3 attempts, skipping to next package."
+        Start-Sleep -Seconds $Settings.Global.RetrySleep
+        IF ($retryCount -eq $Settings.Global.RetryAttempts) {
+          Write-Error -Message "Upload failed $retryCount attempts, skipping to next package."
           $AppUploaded = $false
         }
       }
@@ -492,10 +492,10 @@ Get-ChildItem "$BuildDir\Winget-Pkgs", "$BuildDir\Win32App-Pkgs", "$BuildDir\Pri
         $AppUploaded = $true
       }
       $retryCount += 1
-    } while ($NewWin32App.size -eq 0 -and $retryCount -le 3)    
+    } while ($NewWin32App.size -eq 0 -and $retryCount -le $Settings.Global.RetryAttempts)    
     IF (!($AppUploaded)) {
       Write-Host "##################### Aborted - $($BuildAppInfo.DisplayName) #####################`r`n`r`n"-ForegroundColor "blue"   
-      continue
+      return
     }
 
     #endregion Add App
@@ -582,7 +582,7 @@ Get-ChildItem "$BuildDir\Winget-Pkgs", "$BuildDir\Win32App-Pkgs", "$BuildDir\Pri
 
           $Win32AppAssignment += Add-IntuneWin32AppAssignmentAllDevices @AssignmentParams        
         }
-        "Groups" {        
+        "Group" {        
 				  
           $AssignmentParams = @{
             "id"      = $NewWin32App.id # Required
@@ -605,7 +605,7 @@ Get-ChildItem "$BuildDir\Winget-Pkgs", "$BuildDir\Win32App-Pkgs", "$BuildDir\Pri
           IF ($Assignment.RestartCountDownDisplay) { $AssignmentParams.add("RestartCountDownDisplay", $Assignment.RestartCountDownDisplay) } # Not required, default 15 - 1-240
           IF ($Assignment.RestartNotificationSnooze) { $AssignmentParams.add("RestartNotificationSnooze", $Assignment.RestartNotificationSnooze) } # Not required, default 240 - 1-712
 
-          $Win32AppAssignment += Add-IntuneWin32AppAssignmentGroup @AssignmentParams 
+          $Win32AppAssignment += $(Add-IntuneWin32AppAssignmentGroup @AssignmentParams)
         }
       } 
     }
