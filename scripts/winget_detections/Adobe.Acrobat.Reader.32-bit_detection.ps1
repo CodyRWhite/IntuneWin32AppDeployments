@@ -10,7 +10,6 @@ $logFile = "$($(Get-Date -Format "yyyy-MM-dd hh.mm.ssK").Replace(":",".")) - $ap
 $settingsFile = "settings.json"
 
 $errorVar = $null
-$uninstallResult = $null
 
 $debug = $false
 
@@ -39,26 +38,64 @@ IF ($debug) {
 }
 
 try {
-	Write-Verbose "Starting detection for $appID"
-	Push-Location "C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe" -ErrorAction SilentlyContinue
-	$appFilePath = "$(Get-Location)\AppInstallerCLI.exe"
-	IF (Test-Path -Path $appFilePath) {
-		$argumentList = [System.Collections.ArrayList]@("list", "--id $appID")  
-		$cliCommand = '& "' + $($appFilePath) + '" ' + $argumentList
-		$AppDetectionCode = Invoke-Expression $cliCommand
-		If ($AppDetectionCode[-1].Contains($appID)) {
-			Write-Verbose "$appID successfully installed"
-			exit 0
+	IF ([System.Environment]::Is64BitOperatingSystem) {
+		$ProgramFiles = "C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe"
+	}
+	ELSE {
+		$ProgramFiles = "C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_*_x86__8wekyb3d8bbwe"		
+	}
+
+	IF ($([Security.Principal.WindowsIdentity]::GetCurrent().IsSystem) -eq $True) {
+		Write-Verbose "Starting detection for $appID in System Context"
+		Push-Location $ProgramFiles -ErrorAction SilentlyContinue
+		$appFilePath = "$(Get-Location)\AppInstallerCLI.exe"
+		IF (Test-Path -Path $appFilePath) {
+			$argumentList = [System.Collections.ArrayList]@("list", "--id $appID")  
+			$cliCommand = '& "' + $($appFilePath) + '" ' + $argumentList
+			$AppDetectionCode = Invoke-Expression $cliCommand
+			If ($AppDetectionCode[-1].Contains($appID)) {
+				Write-Verbose "$appID successfully installed"
+				exit 0
+			}
+			else {
+				Write-Verbose "$appID not installed"
+				exit 1
+			}
 		}
 		else {
-			Write-Verbose "$appID not installed"
-			exit 1
+			Write-Verbose "WinGet not Installed"
+			Exit 1
 		}
 	}
-	else {
-		Write-Verbose "WinGet not Installed"
-		Exit 1
-	}
+	ELSE {
+		IF ($([Security.Principal.WindowsIdentity]::GetCurrent().Groups) -match "S-1-5-32-544") {
+			#Running as Admin 
+			Write-Error  "Script is running in Administrator Context not System or User Context - Unsupported configuration"
+			Exit 1
+		}
+		ELSE {
+			#Running as Users
+			Write-Verbose "Starting detection for $appID in User Context"
+			$WinGetVer = Invoke-Expression '& WinGet -v'
+			IF ($WinGetVer -ge "V1.0.0") {
+				$argumentList = [System.Collections.ArrayList]@("list", "--id $appID")  
+				$cliCommand = '& "WinGet" ' + $argumentList
+				$AppDetectionCode = Invoke-Expression $cliCommand
+				If ($AppDetectionCode[-1].Contains($appID)) {
+					Write-Verbose "$appID successfully installed"
+					exit 0
+				}
+				else {
+					Write-Verbose "$appID not installed"
+					exit 1
+				}
+			}
+			else {
+				Write-Verbose "WinGet not Installed"
+				Exit 1
+			}
+		}
+	}		
 }
 Catch {
 	$errorVar = $_.Exception.Message

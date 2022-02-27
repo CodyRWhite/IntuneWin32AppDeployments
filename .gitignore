@@ -4,6 +4,7 @@
 *.mst
 *.cab
 *.bak
+*.build
 In Progress/
 Private-Pkgs
 settings.json
