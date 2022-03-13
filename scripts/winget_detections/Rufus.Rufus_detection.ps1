@@ -48,8 +48,10 @@ try {
 	IF ($([Security.Principal.WindowsIdentity]::GetCurrent().IsSystem) -eq $True) {
 		Write-Verbose "Starting detection for $appID in System Context"
 		Push-Location $ProgramFiles -ErrorAction SilentlyContinue
-		$appFilePath = "$(Get-Location)\AppInstallerCLI.exe"
-		IF (Test-Path -Path $appFilePath) {
+		$AppInstallerPath = "$(Get-Location)\AppInstallerCLI.exe"
+		$WinGetPath = "$(Get-Location)\winget.exe"		
+		$AppFilePath = (Resolve-Path $AppInstallerPath, $WinGetPath -ErrorAction SilentlyContinue).Path
+		IF ($AppFilePat) {
 			$argumentList = [System.Collections.ArrayList]@("list", "--id $appID")  
 			$cliCommand = '& "' + $($appFilePath) + '" ' + $argumentList
 			$AppDetectionCode = Invoke-Expression $cliCommand
