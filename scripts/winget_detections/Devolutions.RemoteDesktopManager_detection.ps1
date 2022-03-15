@@ -51,7 +51,7 @@ try {
 		$AppInstallerPath = "$(Get-Location)\AppInstallerCLI.exe"
 		$WinGetPath = "$(Get-Location)\winget.exe"		
 		$AppFilePath = (Resolve-Path $AppInstallerPath, $WinGetPath -ErrorAction SilentlyContinue).Path
-		IF ($AppFilePat) {
+		IF ($AppFilePath) {
 			$argumentList = [System.Collections.ArrayList]@("list", "--id $appID")  
 			$cliCommand = '& "' + $($appFilePath) + '" ' + $argumentList
 			$AppDetectionCode = Invoke-Expression $cliCommand
