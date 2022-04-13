@@ -1,0 +1,9 @@
+7zip.7zip
+Adobe.Acrobat.Reader.64-bit
+Cisco.CiscoWebexMeetings
+Google.Chrome
+LogMeIn.GoToMeeting
+Mozilla.Firefox
+Notepad++.Notepad++
+TeamViewer.TeamViewer
+Zoom.Zoom

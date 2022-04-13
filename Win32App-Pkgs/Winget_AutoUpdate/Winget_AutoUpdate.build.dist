@@ -1,0 +1,68 @@
+{
+	"AppInformation": {
+		"DisplayName": "Winget Auto Update",
+		"Description": "This project uses the Winget tool to daily update apps (with system context) and notify users when updates are available and installed.",
+		"Publisher": "Romanitho",
+		"DisplayVersion": "1.7.4.0",
+		"Category": "Computer Management",
+		"CompanyPortalFeaturedApp": 0,
+		"InformationURL": "https://github.com/Romanitho/Winget-AutoUpdate",
+		"PrivacyURL": "",
+		"Developer": "",
+		"Owner": "",
+		"Notes": "",
+		"Logo": "$PSScriptRoot\\Icons\\Winget_AutoUpdate.png"
+	},
+	"ProgramInformation": {
+		"InstallFile": "Install.ps1",
+		"InstallCommandLine": "PowerShell.exe -NoProfile -ExecutionPolicy Bypass -File Install.ps1 Winget_AutoUpdate",
+		"UninstallCommandLine": "PowerShell.exe -NoProfile -ExecutionPolicy Bypass -File Uninstall.ps1 Winget_AutoUpdate",
+		"InstallExperience": "system",
+		"RestartBehavior": "suppress",
+		"ReturnCode": ""
+	},
+	"RequirementRule": {
+		"Architecture": "All",
+		"MinimumSupportedOperatingSystem": "1903",
+		"MinimumFreeDiskSpaceInMB": "",
+		"MinimumMemoryInMB": "",
+		"MinimumNumberOfProcessors": "",
+		"MinimumCPUSpeedInMHz": ""
+	},
+	"AdditionalRequirementRule": [],
+	"DetectionRules": [
+		{
+			"id": 0,
+			"Detection": "Registry",
+			"DetectionMethod": "VersionComparison",
+			"KeyPath": "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{091a1849-1ebf-455c-9440-592bdcc6a76e}",
+			"ValueName": "DisplayVersion",
+			"ComparisonOperator": "greaterThanOrEqual",
+			"Value": "1.7.4.0",
+			"Check32BitOn64System": 0
+		}
+	],
+	"Dependencies": [
+		{
+			"displayName": "Desktop App Installer",
+			"displayVersion": "1.0.0.0",
+			"dependencyType": "AutoInstall"
+		}
+	],
+	"Supersedence": [],
+	"Assignments": [
+		{
+			"Target": "AllUsers",
+			"Intent": "Required",
+			"Notification": "hideAll",
+			"AvailableTime": "",
+			"DeadlineTime": "",
+			"UseLocalTime": "",
+			"DeliveryOptimizationPriority": "notConfigured",
+			"EnableRestartGracePeriod": "",
+			"RestartGracePeriod": "",
+			"RestartCountDownDisplay": "",
+			"RestartNotificationSnooze": ""
+		}
+	]
+}
