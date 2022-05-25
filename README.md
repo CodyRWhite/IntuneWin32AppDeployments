@@ -184,7 +184,7 @@ _Coming Soon_
   "id": 0,
   "Detection": "MSI",
   "ProductCode": "{523727B0-D5D5-4392-935B-BFEAA70F29A6}", // MSI Product Code
-  "ProductVersionOperator": "equal",
+  "ProductVersionOperator": "equal", //Options: "notConfigured", "equal", "notEqual", "greaterThanOrEqual", "greaterThan", "lessThanOrEqual", "lessThan"
   "ProductVersion": "3.4.4.1179"
 }
 ```
