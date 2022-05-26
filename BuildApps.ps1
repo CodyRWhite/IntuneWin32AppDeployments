@@ -83,7 +83,9 @@ Write-Verbose -Message "Fetching Application List from Remote Server"
 $Win32Apps = Get-IntuneWin32App
 
 # Need to work on a way to sort for dependency and do non dependencies first and add to $win32Apps..
-Get-ChildItem "$BuildDir\Winget-Pkgs", "$BuildDir\Win32App-Pkgs", "$BuildDir\Private-Pkgs" -Directory | where-object { $_.Name -notin $Settings.Folders.Exclusions } | foreach-object {
+#, "$BuildDir\Win32App-Pkgs", "$BuildDir\Private-Pkgs" , "$BuildDir\Win32App-Pkgs", "$BuildDir\Private-Pkgs"
+Get-ChildItem "$BuildDir\Winget-Pkgs", "$BuildDir\Win32App-Pkgs", "$BuildDir\Private-Pkgs"  -Directory | where-object { $_.Name -notin $Settings.Folders.Exclusions } | foreach-object {
+  #Get-ChildItem "$BuildDir\Private-Pkgs" -Directory | where-object { $_.Name -eq "Cisco_Umbrella" } | foreach-object {
   #region Authoriaztaion refresh check
   $TokenLifeTime = ($Global:AuthenticationHeader.ExpiresOn - (Get-Date).ToUniversalTime()).Minutes
   if ($TokenLifeTime -le 10) {
@@ -143,20 +145,16 @@ Get-ChildItem "$BuildDir\Winget-Pkgs", "$BuildDir\Win32App-Pkgs", "$BuildDir\Pri
   #region Check for app update
   Write-Verbose -Message "Starting W32 App Check on $($BuildAppInfo.DisplayName)"
   Write-Verbose -Message "Local version of $($BuildAppInfo.DisplayName) detected as: $($BuildAppInfo.DisplayVersion)"
-    
-  foreach ($app in $Win32Apps) {
-    IF ($app.displayName -eq $BuildAppInfo.DisplayName) {
-      $Win32App = $app
-      break
-    }
-    else {
-      $Win32App = $null
-    }
+
+  $Win32App = $win32Apps | Where-Object { $_.displayName -eq $BuildAppInfo.DisplayName }
+
+  ForEach ($App in $win32App) {
+    $App.displayVersion = [System.Version]$App.displayVersion
   }
-    
+  
   IF ($Win32App) {
-    Write-Verbose -Message "Remote version of $($BuildAppInfo.DisplayName) detected as: $($Win32App.DisplayVersion)"
-    IF ([System.Version][string]$Win32App.DisplayVersion -lt [System.Version]$BuildAppInfo.DisplayVersion) {
+    Write-Verbose -Message "Remote version of $($BuildAppInfo.DisplayName) detected as: $($Win32App.DisplayVersion | Sort-Object -Unique)"
+    IF (($win32App.DisplayVersion | Measure-Object -Maximum).Maximum -lt [System.Version]$BuildAppInfo.DisplayVersion) {
       #-or $NewBuild
       Write-Verbose -Message "New Version Availble! Preparing Intune W32 App for $($BuildAppInfo.DisplayName)"
       $ContinueBuild = $true
@@ -164,10 +162,13 @@ Get-ChildItem "$BuildDir\Winget-Pkgs", "$BuildDir\Win32App-Pkgs", "$BuildDir\Pri
     ELSE {
       #Temp Patch to rebuild specific apps... 
       IF ($Settings.Rebuild.Enabled) {
-        IF ($SourceFolder -in $Settings.Rebuild.Include -And $SourceFolder -notin $Settings.Rebuild.Exclude) {
-          Write-Host "##################### $($BuildAppInfo.DisplayName) - Detected for redeployment #####################" -ForegroundColor "magenta"
-          $RemoveAppResult = RemoveApp -Win32App $Win32App
-          Write-Debug -Message $RemoveAppResult
+        IF ( $SourceFolder -in $Settings.Rebuild.Include ) {
+          ForEach ($App in $Win32App) {
+            #$SourceFolder -notin $Settings.Rebuild.Exclude
+            Write-Host "##################### $($BuildAppInfo.DisplayName) - Detected for redeployment #####################" -ForegroundColor "magenta"
+            $RemoveAppResult = RemoveApp -Win32App $App
+            Write-Debug -Message $RemoveAppResult
+          }
           $ContinueBuild = $true
         }
       }
@@ -185,12 +186,10 @@ Get-ChildItem "$BuildDir\Winget-Pkgs", "$BuildDir\Win32App-Pkgs", "$BuildDir\Pri
     #region Build Win32App
     Write-Host "##################### Starting - $($BuildAppInfo.DisplayName) #####################" -ForegroundColor "blue" 
     Write-Verbose -Message "Intune W32 App for $($BuildAppInfo.DisplayName) Build Started"
-    Start-Process -FilePath "$BuildDir\IntuneWinAppUtil.exe" -ArgumentList "-c $BuildPath", "-s $($BuildProgramInfo.InstallFile)", "-o $OutputDir", "-q" -NoNewWindow -Wait -RedirectStandardOutput "NUL"
-    if ($($BuildProgramInfo.InstallFile) -eq "Install.ps1") {
-      IF (Test-Path -Path "$OutputDir\$SourceFolder.intunewin") {
-        Remove-Item -Path "$OutputDir\$SourceFolder.intunewin"
-      }
-      Move-Item -Path "$OutputDir\Install.intunewin" -Destination "$OutputDir\$SourceFolder.intunewin"
+    Start-Process -FilePath "$BuildDir\IntuneWinAppUtil.exe" -ArgumentList "-c $BuildPath", "-s $($BuildProgramInfo.InstallFile)", "-o $OutputDir", "-q" -Wait -NoNewWindow -RedirectStandardOutput "$OutputDir\$SourceFolder.log"
+    IF (!($($BuildProgramInfo.InstallFile).Contains($SourceFolder))) {
+      $file = Get-ChildItem -Path $OutputDir | Where-Object { $($BuildProgramInfo.InstallFile).Contains([System.IO.Path]::GetFileNameWithoutExtension($_)) }
+      Move-Item -Path "$OutputDir\$($file.Name)" -Destination "$OutputDir\$SourceFolder.intunewin" -Force
     }
     Write-Verbose -Message "Intune W32 App for $($BuildAppInfo.DisplayName) Build Complete"
     #endregion Build Win32App
