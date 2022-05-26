@@ -1,0 +1,62 @@
+{
+	"AppInformation": {
+		"DisplayName": "DWG TrueView 2022 x64",
+		"Description": "View or convert with DWG TrueView - View DWG files or convert them to work with older versions of AutoCAD software. Add Design Review to mark up 2D and 3D files without the original design software. For greater flexibility consider Autodesk Viewer or AutoCAD web app.",
+		"Publisher": "Autodesk",
+		"DisplayVersion": "24.1.51.0",
+		"Category": "Productivity",
+		"CompanyPortalFeaturedApp": 0,
+		"InformationURL": "https://www.autodesk.ca/en/viewers",
+		"PrivacyURL": "https://www.autodesk.com/company/legal-notices-trademarks/privacy-statement",
+		"Developer": "Autodesk",
+		"Owner": "",
+		"Notes": "",
+		"Logo": "$PSScriptRoot\\Icons\\Export-Autodesk.DWGTrueView2022.png"
+	},
+	"ProgramInformation": {
+		"InstallFile": "Install.ps1",
+		"InstallCommandLine": "PowerShell.exe -NoProfile -ExecutionPolicy Bypass -File Install.ps1 Autodesk.DWGTrueView2022",
+		"UninstallCommandLine": "PowerShell.exe -NoProfile -ExecutionPolicy Bypass -File Uninstall.ps1 Autodesk.DWGTrueView2022",
+		"InstallExperience": "system",
+		"RestartBehavior": "suppress",
+		"ReturnCode": ""
+	},
+	"RequirementRule": {
+		"Architecture": "x64",
+		"MinimumSupportedOperatingSystem": "1903",
+		"MinimumFreeDiskSpaceInMB": "",
+		"MinimumMemoryInMB": "",
+		"MinimumNumberOfProcessors": "",
+		"MinimumCPUSpeedInMHz": ""
+	},
+	"AdditionalRequirementRule": [],
+	"DetectionRules": [
+		{
+			"id": 0,
+			"Detection": "Registry",
+			"DetectionMethod": "VersionComparison",
+			"KeyPath": "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{28B89EEF-5128-0409-0100-CF3F3A09B77D}",
+			"ValueName": "DisplayVersion",
+			"ComparisonOperator": "greaterThanOrEqual",
+			"Value": "24.1.51.0",
+			"Check32BitOn64System": 1
+		}
+	],
+	"Dependencies": [],
+	"Supersedence": [],
+	"Assignments": [
+		{
+			"Target": "AllUsers",
+			"Intent": "Available",
+			"Notification": "hideAll",
+			"AvailableTime": "",
+			"DeadlineTime": "",
+			"UseLocalTime": "",
+			"DeliveryOptimizationPriority": "notConfigured",
+			"EnableRestartGracePeriod": "",
+			"RestartGracePeriod": "",
+			"RestartCountDownDisplay": "",
+			"RestartNotificationSnooze": ""
+		}
+	]
+}

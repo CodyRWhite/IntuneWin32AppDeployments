@@ -39,7 +39,7 @@
 			"ValueName": "DisplayVersion",
 			"ComparisonOperator": "greaterThanOrEqual",
 			"Value": "1.7.4.0",
-			"Check32BitOn64System": 0
+			"Check32BitOn64System": 1
 		}
 	],
 	"Dependencies": [

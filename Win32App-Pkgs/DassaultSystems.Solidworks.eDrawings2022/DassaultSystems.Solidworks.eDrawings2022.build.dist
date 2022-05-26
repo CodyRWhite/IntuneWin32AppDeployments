@@ -1,0 +1,62 @@
+{
+	"AppInformation": {
+		"DisplayName": "eDrawings 2022 x64",
+		"Description": "SOLIDWORKS eDrawings is the premiere toolset for 3D CAD markup and viewing. The standalone SOLIDWORKS eDrawings Viewer enables anyone to view, print, and review eDrawings. It is available for Windows, Mac, and mobile devices for true cross-platform design collaboration and communication.",
+		"Publisher": "Dassault Systèmes",
+		"DisplayVersion": "30.20.0037",
+		"Category": "Productivity",
+		"CompanyPortalFeaturedApp": 0,
+		"InformationURL": "https://www.edrawingsviewer.com/",
+		"PrivacyURL": "https://www.edrawingsviewer.com/privacy-policy",
+		"Developer": "Dassault Systèmes",
+		"Owner": "",
+		"Notes": "",
+		"Logo": "$PSScriptRoot\\Icons\\Export-.png"
+	},
+	"ProgramInformation": {
+		"InstallFile": "Install.ps1",
+		"InstallCommandLine": "PowerShell.exe -NoProfile -ExecutionPolicy Bypass -File Install.ps1 SolidWorks.eDrawings.2022",
+		"UninstallCommandLine": "PowerShell.exe -NoProfile -ExecutionPolicy Bypass -File Uninstall.ps1 SolidWorks.eDrawings.2022",
+		"InstallExperience": "system",
+		"RestartBehavior": "suppress",
+		"ReturnCode": ""
+	},
+	"RequirementRule": {
+		"Architecture": "x64",
+		"MinimumSupportedOperatingSystem": "1903",
+		"MinimumFreeDiskSpaceInMB": "",
+		"MinimumMemoryInMB": "",
+		"MinimumNumberOfProcessors": "",
+		"MinimumCPUSpeedInMHz": ""
+	},
+	"AdditionalRequirementRule": [],
+	"DetectionRules": [
+		{
+			"id": 0,
+			"Detection": "Registry",
+			"DetectionMethod": "VersionComparison",
+			"KeyPath": "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{809597D9-554F-4EFB-B0EC-B231924636E2}",
+			"ValueName": "DisplayVersion",
+			"ComparisonOperator": "greaterThanOrEqual",
+			"Value": "30.20.0037",
+			"Check32BitOn64System": 1
+		}
+	],
+	"Dependencies": [],
+	"Supersedence": [],
+	"Assignments": [
+		{
+			"Target": "AllUsers",
+			"Intent": "Available",
+			"Notification": "hideAll",
+			"AvailableTime": "",
+			"DeadlineTime": "",
+			"UseLocalTime": "",
+			"DeliveryOptimizationPriority": "notConfigured",
+			"EnableRestartGracePeriod": "",
+			"RestartGracePeriod": "",
+			"RestartCountDownDisplay": "",
+			"RestartNotificationSnooze": ""
+		}
+	]
+}
