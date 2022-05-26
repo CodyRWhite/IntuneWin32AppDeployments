@@ -9,3 +9,7 @@ In Progress/
 Private-Pkgs
 settings.json
 *.log
+*.iss
+*.ini
+*.msp
+Win32App-Pkgs/Personify.ChromaCam/bg2.png
