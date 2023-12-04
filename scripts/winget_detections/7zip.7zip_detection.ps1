@@ -1,4 +1,4 @@
-﻿$VerbosePreference = "Continue"
+$VerbosePreference = "Continue"
 $DebugPreference = "Continue"
 
 $appID = "7zip.7zip"
@@ -38,21 +38,26 @@ IF ($debug) {
 }
 
 try {
-	IF ([System.Environment]::Is64BitOperatingSystem) {
-		$ProgramFiles = "C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe"
-	}
-	ELSE {
-		$ProgramFiles = "C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_*_x86__8wekyb3d8bbwe"		
-	}
-
 	IF ($([Security.Principal.WindowsIdentity]::GetCurrent().IsSystem) -eq $True) {
+		IF ([System.Environment]::Is64BitOperatingSystem) {
+			$ResolveWingetPath = Resolve-Path "C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe\winget.exe"
+		}
+		ELSE {
+			$ResolveWingetPath = Resolve-Path "C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_*_x86__8wekyb3d8bbwe\winget.exe"
+		}
+
+		if ($ResolveWingetPath) {
+			$wingetPath = $ResolveWingetPath[-1].Path
+		}
+
+		$wingetFolderPath = Split-Path -Path $WingetPath -Parent
+		
 		Write-Verbose "Starting detection for $appID in System Context"
-		Push-Location $ProgramFiles -ErrorAction SilentlyContinue
-		$AppInstallerPath = "$(Get-Location)\AppInstallerCLI.exe"
-		$WinGetPath = "$(Get-Location)\winget.exe"		
-		$AppFilePath = (Resolve-Path $AppInstallerPath, $WinGetPath -ErrorAction SilentlyContinue).Path
+		Push-Location $wingetFolderPath -ErrorAction SilentlyContinue
+		$wingetPath = "$(Get-Location)\winget.exe"
+		$AppFilePath = Resolve-Path -Path $wingetPath
 		IF ($AppFilePath) {
-			$argumentList = [System.Collections.ArrayList]@("list", "--id $appID")  
+			$argumentList = [System.Collections.ArrayList]@("list", "--accept-source-agreements", "--disable-interactivity", "--id $appID")  
 			$cliCommand = '& "' + $($appFilePath) + '" ' + $argumentList
 			$AppDetectionCode = Invoke-Expression $cliCommand
 			If ($AppDetectionCode[-1].Contains($appID)) {
@@ -80,7 +85,7 @@ try {
 			Write-Verbose "Starting detection for $appID in User Context"
 			$WinGetVer = Invoke-Expression '& WinGet -v'
 			IF ($WinGetVer -ge "V1.0.0") {
-				$argumentList = [System.Collections.ArrayList]@("list", "--id $appID")  
+				$argumentList = [System.Collections.ArrayList]@("list", "--accept-source-agreements", "--disable-interactivity", "--id $appID")  
 				$cliCommand = '& "WinGet" ' + $argumentList
 				$AppDetectionCode = Invoke-Expression $cliCommand
 				If ($AppDetectionCode[-1].Contains($appID)) {
